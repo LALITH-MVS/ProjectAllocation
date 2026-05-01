@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:8080",
+  //baseURL: "http://localhost:8080",
+  baseURL: "https://projectallocation-production.up.railway.app",
 });
 
 // ✅ Attach JWT token to every request automatically

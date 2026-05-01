@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // 🔓 PUBLIC APIs
-                        .requestMatchers("/auth/**", "/api/users/signup").permitAll()
+                        .requestMatchers("/auth/**", "/api/users/signup", "/api/users/login").permitAll()
 
                         // 👨‍🏫 TEACHER ONLY
                         .requestMatchers("/api/classes/**").hasRole("TEACHER")
