@@ -32,17 +32,6 @@ public class JwtFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // ✅ 🔥 VERY IMPORTANT: Allow preflight (CORS fix)
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
-            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            response.setHeader("Access-Control-Allow-Headers", "*");
-            response.setHeader("Access-Control-Allow-Credentials", "true");
-            response.setStatus(HttpServletResponse.SC_OK);
-            return;
-        }
-
-        // ✅ Allow public endpoints
         if (request.getServletPath().equals("/auth/login") ||
                 request.getServletPath().equals("/api/users/signup")) {
             filterChain.doFilter(request, response);
@@ -63,7 +52,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-            // ✅ DEBUG
+            // ✅ DEBUG — check Spring Boot console for these lines
             System.out.println("DEBUG AUTHORITIES: " + userDetails.getAuthorities());
             System.out.println("DEBUG USERNAME: " + userDetails.getUsername());
 
