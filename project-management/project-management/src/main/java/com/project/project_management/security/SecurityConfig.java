@@ -58,6 +58,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // 🔓 PUBLIC APIs
+                        //ADDED NEWLY FOR DEPLOYMENT
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**", "/api/users/signup", "/api/users/login").permitAll()
 
@@ -98,18 +99,24 @@ public class SecurityConfig {
         return http.build();
     }
 
+    //ADDED NEWLY FOR DEPLOYMENT
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "https://project-allocation-nine.vercel.app",
                 "https://project-allocation-git-master-mvslalith-8077s-projects.vercel.app",
                 "https://project-allocation-vwc5odn90-mvslalith-8077s-projects.vercel.app"
         ));
+
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
+
+        // 🔥 VERY IMPORTANT (fix preflight issues)
+        config.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
