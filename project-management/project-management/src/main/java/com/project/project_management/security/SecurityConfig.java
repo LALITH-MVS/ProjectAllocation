@@ -1,6 +1,5 @@
 package com.project.project_management.security;
 
-import com.project.project_management.security.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,15 +12,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.cors.CorsConfiguration;
-
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.http.HttpMethod;
-import java.util.List;
-
 
 import java.util.List;
 
@@ -35,7 +28,7 @@ public class SecurityConfig {
         this.jwtFilter = jwtFilter;
     }
 
-    // 🔐 Password encoder (IMPORTANT)
+    // 🔐 Password encoder
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -47,18 +40,19 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    // 🔐 Main Security Config
+    // 🔐 Security Config
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(cors -> {})   // ✅ FIXED
-                .csrf(csrf -> csrf.disable())   // ✅ FIXED
+                // ✅ FIXED: attach corsConfigurationSource
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
 
                         // 🔓 PUBLIC APIs
-                        //ADDED NEWLY FOR DEPLOYMENT
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**", "/api/users/signup", "/api/users/login").permitAll()
 
@@ -68,9 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/audit/**").hasRole("TEACHER")
                         .requestMatchers("/project/add").hasRole("TEACHER")
                         .requestMatchers("/project/delete/**").hasRole("TEACHER")
-                        .requestMatchers("/api/ideas/approve/**").hasRole("TEACHER")
                         .requestMatchers("/ideas/update-status").hasRole("TEACHER")
-
                         .requestMatchers("/ideas/class/**").hasRole("TEACHER")
 
                         // 🎓 STUDENT ONLY
@@ -80,11 +72,12 @@ public class SecurityConfig {
                         .requestMatchers("/available/**").hasRole("STUDENT")
                         .requestMatchers("/selected/**").hasRole("STUDENT")
                         .requestMatchers("/project/select").hasRole("STUDENT")
-                        // 👥 COMMON (logged-in users)
-                        .requestMatchers("/api/team/**").authenticated()
                         .requestMatchers("/project/select/**").hasRole("STUDENT")
+
+                        // 👥 COMMON
+                        .requestMatchers("/api/team/**").authenticated()
                         .requestMatchers("/api/projects/**").authenticated()
-                        .requestMatchers("/student/**").hasRole("STUDENT")
+
                         // 🔒 EVERYTHING ELSE
                         .anyRequest().authenticated()
                 )
@@ -99,29 +92,27 @@ public class SecurityConfig {
         return http.build();
     }
 
-    //ADDED NEWLY FOR DEPLOYMENT
+    // ✅ CORS CONFIG (FIXED for Vercel + Preflight)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of(
+        // ✅ FIXED: supports all Vercel deployments
+        config.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",
-                "https://project-allocation-nine.vercel.app",
-                "https://project-allocation-git-master-mvslalith-8077s-projects.vercel.app",
-                "https://project-allocation-vwc5odn90-mvslalith-8077s-projects.vercel.app"
+                "https://*.vercel.app"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
-        // 🔥 VERY IMPORTANT (fix preflight issues)
+        // ✅ helps frontend read JWT if needed
         config.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
+
         return source;
     }
-
 }
-
